@@ -1,0 +1,46 @@
+
+Source:
+https://fpl.readthedocs.io/en/latest/_modules/fpl/fpl.html
+https://fpl.readthedocs.io/en/latest/classes/user.html
+
+
+Get a managers lineup by their user-id (for a gameweek)
+https://fantasy.premierleague.com/api/entry/{USER_ID}/event/{GW_NR}/picks/
+Working example:
+https://fantasy.premierleague.com/api/entry/91928/event/8/picks/
+
+Get a manager profile by user-id (Points, Leagues, Team-value, Bank)
+https://fantasy.premierleague.com/api/entry/{USER_ID/
+Working example:
+https://fantasy.premierleague.com/api/entry/2935529/
+
+Get my team by userID(logged in)
+https://fantasy.premierleague.com/api/my-team/{USER_ID}/
+Working example:
+https://fantasy.premierleague.com/api/my-team/627527/
+
+Get all transfers by user-id
+https://fantasy.premierleague.com/api/entry/{USER_ID}/transfers/
+Working example:
+https://fantasy.premierleague.com/api/entry/91928/transfers/
+
+Get league standings from league-id
+314 = overall		(returns top 50 ) ( How to go to next page? )
+96157 = guttÆne
+181 = Norway
+https://fantasy.premierleague.com/api/leagues-classic/{LEAGUE_ID}/standings/
+Working example:
+https://fantasy.premierleague.com/api/leagues-classic/314/standings/
+
+
+(https://fantasy.premierleague.com/api/entry/627527/transfers-latest/ 
+TEST will this reveal transfers before deadline? Probably, but it requires login)
+
+
+OTHER
+All data for fixtures incl teams, gw, score, diff, events(like goals, cards, bps etc + by who) etc
+https://fantasy.premierleague.com/api/fixtures/
+
+SHIRTS:
+ https://fantasy.premierleague.com/dist/img/shirts/standard/shirt_{NR}-110.webp
+ EX: https://fantasy.premierleague.com/dist/img/shirts/standard/shirt_11-110.webp
