@@ -151,7 +151,9 @@ const root = {
   },
   getPlayersByIds: ({ elements }) => {
     const elementArr = JSON.parse(elements);
-    const newArr = db.filter((el) => elementArr.includes(el.id));
+    const newArr = db.filter((el) => {
+      return elementArr.includes(el.id);
+    });
     return newArr;
   },
 

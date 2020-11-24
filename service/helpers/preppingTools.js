@@ -1,8 +1,3 @@
-const fs = require('fs');
-const root = require('app-root-path');
-let playersDB = JSON.parse(fs.readFileSync(root + '/data/elements.json'));
-let teamsDB = JSON.parse(fs.readFileSync(root + '/data/teams.json'));
-
 const positionMap = [
   {
     code: 1,
@@ -23,5 +18,3 @@ const positionMap = [
 ];
 
 module.exports.positionMap = positionMap;
-module.exports.playersDB = playersDB;
-module.exports.teamsDB = teamsDB;

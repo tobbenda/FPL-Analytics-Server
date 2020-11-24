@@ -1,7 +1,8 @@
 const fs = require('fs');
 const root = require('app-root-path');
-let { playersDB, teamsDB, positionMap } = require(root +
-  '/service/helpers/preppingTools');
+let playersDB = JSON.parse(fs.readFileSync(root + '/data/elements.json'));
+let teamsDB = JSON.parse(fs.readFileSync(root + '/data/teams.json'));
+let { positionMap } = require(root + '/service/helpers/preppingTools');
 
 function points_pr_mill(player) {
   const ppm = parseFloat((player.total_points / player.now_cost) * 10);
