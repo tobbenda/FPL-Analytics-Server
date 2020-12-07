@@ -6,9 +6,9 @@ const { updateTopPlayerData } = require(root +
 
 async function update() {
   await remote.getData();
-  const pages = 4;
+  const pages = 2;
   const league = 314;
-  const gw = 9;
+  const gw = 11;
   await updateTopPlayerData(pages, league, gw);
   await preppers.prepPlayers();
 }
