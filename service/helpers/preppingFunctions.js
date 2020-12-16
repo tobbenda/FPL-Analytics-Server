@@ -1,8 +1,9 @@
 const fs = require('fs');
 const root = require('app-root-path');
-let playersDB = JSON.parse(fs.readFileSync(root + '/data/elements.json'));
 let teamsDB = JSON.parse(fs.readFileSync(root + '/data/teams.json'));
 let { positionMap } = require(root + '/service/helpers/preppingTools');
+
+console.log('First Thing in preppingFunctions');
 
 function points_pr_mill(player) {
   const ppm = parseFloat((player.total_points / player.now_cost) * 10);
@@ -39,10 +40,7 @@ function stringToFloat(player) {
   return player;
 }
 
-let topPlayersData = JSON.parse(
-  fs.readFileSync(root + '/data/top_manager_stats.json')
-);
-function addTopManagerOwnPercentage(player) {
+function addTopManagerOwnPercentage(player, topPlayersData) {
   if (topPlayersData[player.id]) {
     return topPlayersData[player.id].ownPercent;
   } else {
@@ -50,7 +48,7 @@ function addTopManagerOwnPercentage(player) {
   }
 }
 
-function addTopManagerCapPercentage(player) {
+function addTopManagerCapPercentage(player, topPlayersData) {
   if (topPlayersData[player.id]) {
     return topPlayersData[player.id].capPercent;
   } else {
@@ -59,14 +57,18 @@ function addTopManagerCapPercentage(player) {
 }
 
 function prepPlayers() {
+  let playersDB = JSON.parse(fs.readFileSync(root + '/data/elements.json'));
+  let topPlayersData = JSON.parse(
+    fs.readFileSync(root + '/data/top_manager_stats.json')
+  );
   playersDB.forEach((player) => {
     player = stringToFloat(player);
     player.points_pr_mill = points_pr_mill(player);
     player.points_pr_game_pr_mill = points_pr_game_pr_mill(player);
     player.team_name = addTeamWritten(player);
     player.position = addPosition(player);
-    player.top_own_percent = addTopManagerOwnPercentage(player);
-    player.top_cap_percent = addTopManagerCapPercentage(player);
+    player.top_own_percent = addTopManagerOwnPercentage(player, topPlayersData);
+    player.top_cap_percent = addTopManagerCapPercentage(player, topPlayersData);
   });
   fs.writeFileSync(
     root + '/data/elements_prepped.json',
