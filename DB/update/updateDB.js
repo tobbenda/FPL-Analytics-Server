@@ -68,7 +68,6 @@ const getNewDataAndUpdate = async(latestBootstrapGw, client) => {
 // testENV();
 const updateDB = async () => {
     const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.nmqfa.mongodb.net/fpl?retryWrites=true&w=majority`
-    console.log(uri);
     const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true });
     try {
         await client.connect();
