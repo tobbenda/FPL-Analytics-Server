@@ -10,8 +10,14 @@ const db = JSON.parse(
 );
 const URL = require('url');
 const qs = require('querystring');
-
 const request = require('request');
+const {updateDB} = require('./DB/update/updateDB');
+const PORT = process.env.PORT || 4001
+
+var schedule = require('node-schedule');
+var j = schedule.scheduleJob('* */1 * * *', function(){
+  updateDB();
+});
 
 const login = async (req, resp, email, password, playerID) => {
   try {
@@ -272,5 +278,5 @@ app.use(
     graphiql: true,
   })
 );
-app.listen(4001);
-console.log('Running a GraphQL API server at http://localhost:4001/graphql');
+app.listen(PORT);
+// console.log('Running a GraphQL API server at http://localhost:4001/graphql');

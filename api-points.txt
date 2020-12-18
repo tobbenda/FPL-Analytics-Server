@@ -2,6 +2,7 @@
 Source:
 https://fpl.readthedocs.io/en/latest/_modules/fpl/fpl.html
 https://fpl.readthedocs.io/en/latest/classes/user.html
+https://medium.com/@frenzelts/fantasy-premier-league-api-endpoints-a-detailed-guide-acbd5598eb19
 
 
 Get a managers lineup by their user-id (for a gameweek)
@@ -40,6 +41,19 @@ TEST will this reveal transfers before deadline? Probably, but it requires login
 OTHER
 All data for fixtures incl teams, gw, score, diff, events(like goals, cards, bps etc + by who) etc
 https://fantasy.premierleague.com/api/fixtures/
+
+
+Data for a certain event: (Event = gw)
+https://fantasy.premierleague.com/api/fixtures/?event=1
+
+Data summary for a player by player ID
+https://fantasy.premierleague.com/api/element-summary/{PLAYER_ID}/
+EX: https://fantasy.premierleague.com/api/element-summary/4/
+
+History GW data for manager by manger_id (Incl. GW Points, Tot points, bank, value (not players)
+https://fantasy.premierleague.com/api/entry/{manager_id}/history/
+Ex: https://fantasy.premierleague.com/api/entry/627527/history/
+
 
 SHIRTS:
  https://fantasy.premierleague.com/dist/img/shirts/standard/shirt_{NR}-110.webp
