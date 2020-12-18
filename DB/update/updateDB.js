@@ -3,6 +3,11 @@ const helpers = require('./helpers');
 const request = require('request')
 require('dotenv').config();
 
+var schedule = require('node-schedule');
+var j = schedule.scheduleJob('0 * * * *', function(){
+  console.log('Holla');
+});
+
 const getGwLiveElements = (gw) => {
     const url = `https://fantasy.premierleague.com/api/event/${gw}/live/`;
     return new Promise((resolve, reject) => {
