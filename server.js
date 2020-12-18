@@ -15,7 +15,7 @@ const {updateDB} = require('./DB/update/updateDB');
 const PORT = process.env.PORT || 4001
 
 var schedule = require('node-schedule');
-var j = schedule.scheduleJob('* * */1 * *', function(){
+var j = schedule.scheduleJob('0 * * * *', function(){
   updateDB();
 });
 
