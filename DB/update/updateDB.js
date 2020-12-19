@@ -4,7 +4,7 @@ const request = require('request')
 require('dotenv').config();
 
 var schedule = require('node-schedule');
-var j = schedule.scheduleJob('0 * * * *', function(){
+var j = schedule.scheduleJob('*/30 * * * *', function(){
   console.log('Holla');
 });
 
