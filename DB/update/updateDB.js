@@ -3,10 +3,10 @@ const helpers = require('./helpers');
 const request = require('request')
 require('dotenv').config();
 
-var schedule = require('node-schedule');
-var j = schedule.scheduleJob('*/30 * * * *', function(){
-  console.log('Holla');
-});
+// var schedule = require('node-schedule');
+// var j = schedule.scheduleJob('*/30 * * * *', function(){
+//   console.log('Holla');
+// });
 
 const getGwLiveElements = (gw) => {
     const url = `https://fantasy.premierleague.com/api/event/${gw}/live/`;
@@ -92,7 +92,7 @@ const updateDB = async () => {
         await client.close();
     }
 }
-// updateDB()
+updateDB()
 
 const getLatestDbGw = async(client) => {
     const details = await client.db('fpl').collection('details').findOne({name:"details"})
