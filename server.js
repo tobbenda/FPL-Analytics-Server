@@ -11,13 +11,13 @@ const db = JSON.parse(
 const URL = require('url');
 const qs = require('querystring');
 const request = require('request');
-const {updateDB} = require('./DB/update/updateDB');
+// const {updateDB} = require('./DB/update/updateDB');
 const PORT = process.env.PORT || 4001
 
-var schedule = require('node-schedule');
-var j = schedule.scheduleJob('0 * * * *', function(){
-  updateDB();
-});
+// var schedule = require('node-schedule');
+// var j = schedule.scheduleJob('0 * * * *', function(){
+//   updateDB();
+// });
 
 const login = async (req, resp, email, password, playerID) => {
   try {

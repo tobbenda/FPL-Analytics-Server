@@ -3,11 +3,6 @@ const helpers = require('./helpers');
 const request = require('request')
 require('dotenv').config();
 
-// var schedule = require('node-schedule');
-// var j = schedule.scheduleJob('*/30 * * * *', function(){
-//   console.log('Holla');
-// });
-
 const getGwLiveElements = (gw) => {
     const url = `https://fantasy.premierleague.com/api/event/${gw}/live/`;
     return new Promise((resolve, reject) => {
@@ -67,10 +62,7 @@ const getNewDataAndUpdate = async(latestBootstrapGw, client) => {
     await client.db('fpl').collection('details').updateOne({name:"details"}, {$set:{latestGW:latestBootstrapGw}, $push:{updateTimes:{gw:latestBootstrapGw, time:time}}})
     console.log('bootstrapelements, bootstrapteams, liveElements, elementSummaries created and details updated for gw:', latestBootstrapGw);
 }
-// const testENV=()=> {
-//     console.log(process.env);
-// }
-// testENV();
+
 const updateDB = async () => {
     const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.nmqfa.mongodb.net/fpl?retryWrites=true&w=majority`
     const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true });
@@ -92,7 +84,7 @@ const updateDB = async () => {
         await client.close();
     }
 }
-updateDB()
+updateDB();
 
 const getLatestDbGw = async(client) => {
     const details = await client.db('fpl').collection('details').findOne({name:"details"})
@@ -101,7 +93,7 @@ const getLatestDbGw = async(client) => {
 
 
 const testStuff = async (cb) => {
-    const uri = "mongodb+srv://tobbenda:peae1445@cluster0.nmqfa.mongodb.net/fpl?retryWrites=true&w=majority"
+    const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.nmqfa.mongodb.net/fpl?retryWrites=true&w=majority`
     const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true });
     try {
         await client.connect();
@@ -114,6 +106,3 @@ const testStuff = async (cb) => {
 }
 // updateDB().catch(console.error);
 module.exports.updateDB = updateDB;
-
-
-// export { updateDB as default };
