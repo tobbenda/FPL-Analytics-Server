@@ -1,3 +1,4 @@
+const { buildExecutionContext } = require("graphql/execution/execute");
 const { MongoClient } = require("mongodb");
 require("dotenv").config();
 const { useDB } = require("./connect");
@@ -15,19 +16,31 @@ const chooseKeys = (objects, keysToKeep) => {
 };
 
 const createGwPlayers = (gwData) => {
-  const gwPlayers = [];
-  for (let i = 0; i < 1; i++) {
-    //gwData.gwBootstrapElements.length;
-    const bootstrapElementsCleaned = chooseKeys(
-      gwData.gwBootstrapElements,
-      bootstrapElementKeysToKeep
-    );
-    gwPlayers.push(bootstrapElementsCleaned);
-  }
-  return gwPlayers;
+  const bootstrapElementsCleaned = chooseKeys(
+    gwData.gwBootstrapElements,
+    bootstrapElementKeysToKeep
+  );
+  const cleanedAndCorrectTypes = bootstrapElementsCleaned.map((el) => {
+    const newObj = {};
+    for (const prop in el) {
+      if (
+        !isNaN(el[prop]) &&
+        el[prop] != null &&
+        el[prop] != "true" &&
+        el[prop] != "false"
+      ) {
+        newObj[prop] = parseFloat(el[prop]);
+      } else {
+        newObj[prop] = el[prop];
+      }
+    }
+    return newObj;
+  });
+  return cleanedAndCorrectTypes;
 };
 
 const initWithCleanedBootstrapElements = async (client, gw) => {
+  console.log("initWithCleand: ", gw);
   let gwData;
   await client
     .db()
@@ -51,34 +64,48 @@ const getLatestDbGw = async (client) => {
 const initDB = async (client) => {
   const gw = await getLatestDbGw(client);
   for (let i = 1; i <= gw; i++) {
-    await initWithCleanedBootstrapElements(client, gw);
+    await initWithCleanedBootstrapElements(client, i);
   }
 };
 
-const stringToDouble = async (client) => {
-  const c = client;
-  const gw = 13;
-  const { elements } = await client.db().collection("gws").findOne({ gw: gw });
+const addCustomStatsForGw = async (client) => {
+  gw = 3;
+  const { elements } = await client
+    .db()
+    .collection("gwsTest")
+    .findOne({ gw: gw });
+  await addPointsPrMill(client, elements);
+};
+useDB(addCustomStatsForGw);
+// db.gwsTest.updateMany({elements:{$elemMatch:{id:254, goals_scored:{$gte:6}}}},{$set:{"elements.$.quote":"I am Salah with more than 5 goals"}})
+
+const addPointsPrMill = async (client, elements) => {
   for (let i = 0; i < elements.length; i++) {
+    // const points_pr_mill = elements[i].total_points / elements[i].now_cost;
     await client
       .db()
-      .collection("gws")
+      .collection("gwsTest")
       .updateOne(
-        { gw: gw },
-        {
-          $set: {
-            "elements.selected_by_percent": parseFloat(
-              elements[i].selected_by_percent
-            ),
-          },
-        }
+        { gw: gw, elements: { $elemMatch: { id: elements[i].id } } },
+        { $set: getNewStats(elements[i]) }
       );
   }
 };
-useDB(stringToDouble);
+const getPointsPrMill = (element) => {
+  return element.total_points / element.now_cost;
+};
+const getPointsPrGamePrMill = (element) => {
+  return element.points_per_game / element.now_cost;
+};
+const getNewStats = (element) => {
+  const updateObject = {
+    "elements.$.points_pr_mill": getPointsPrMill(element),
+    "elements.$.points_pr_game_pr_mill": getPointsPrGamePrMill(element),
+  };
+  return updateObject;
+};
 
 // useDB(initDB);
-// useDB(initWithCleanedBootstrapElements);
 
 const addSomething = async (client) => {
   await client
@@ -86,4 +113,3 @@ const addSomething = async (client) => {
     .collection("gws")
     .insertOne({ name: "test", gw: 2, bongo: 69 });
 };
-// useDB(addSomething)
