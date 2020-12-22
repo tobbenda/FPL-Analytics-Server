@@ -64,52 +64,79 @@ const getLatestDbGw = async (client) => {
 const initDB = async (client) => {
   const gw = await getLatestDbGw(client);
   for (let i = 1; i <= gw; i++) {
-    await initWithCleanedBootstrapElements(client, i);
+    // await initWithCleanedBootstrapElements(client, i);
+    await addFieldsBasedOnInternalCalc(client, i);
   }
 };
 
-const addCustomStatsForGw = async (client) => {
-  gw = 3;
-  const { elements } = await client
+// useDB();
+useDB(initDB);
+
+const addFieldsBasedOnInternalCalc = async (client, gw) => {
+  await client
     .db()
     .collection("gwsTest")
-    .findOne({ gw: gw });
-  await addPointsPrMill(client, elements);
+    .updateOne({ gw: gw }, [
+      {
+        $set: {
+          elements: {
+            $map: {
+              input: "$elements",
+              in: {
+                $mergeObjects: [
+                  "$$this",
+                  {
+                    points_pr_mill: {
+                      $divide: ["$$this.total_points", "$$this.now_cost"],
+                    },
+                    points_pr_game_pr_mill: {
+                      $divide: ["$$this.points_per_game", "$$this.now_cost"],
+                    },
+                  },
+                ],
+              },
+            },
+          },
+        },
+      },
+    ]);
 };
-useDB(addCustomStatsForGw);
-// db.gwsTest.updateMany({elements:{$elemMatch:{id:254, goals_scored:{$gte:6}}}},{$set:{"elements.$.quote":"I am Salah with more than 5 goals"}})
 
-const addPointsPrMill = async (client, elements) => {
+// Not in use
+const addLastMatchStats = async (client, gw) => {
+  gw = 5;
+  if (gw == 1) {
+    // prevent adding
+  }
+  const { elements } = await client
+    .db()
+    .collection("gwsRaw")
+    .findOne({ gw: gw - 1 });
   for (let i = 0; i < elements.length; i++) {
-    // const points_pr_mill = elements[i].total_points / elements[i].now_cost;
     await client
       .db()
       .collection("gwsTest")
       .updateOne(
         { gw: gw, elements: { $elemMatch: { id: elements[i].id } } },
-        { $set: getNewStats(elements[i]) }
+        { $set: getNewStatsObj(elements[i]) }
       );
   }
 };
-const getPointsPrMill = (element) => {
-  return element.total_points / element.now_cost;
-};
-const getPointsPrGamePrMill = (element) => {
-  return element.points_per_game / element.now_cost;
-};
-const getNewStats = (element) => {
+
+// Not in use
+const getNewStatsObj = (element) => {
   const updateObject = {
     "elements.$.points_pr_mill": getPointsPrMill(element),
     "elements.$.points_pr_game_pr_mill": getPointsPrGamePrMill(element),
+    "elements.$.points_last_game": "not implemented",
   };
   return updateObject;
 };
-
-// useDB(initDB);
-
-const addSomething = async (client) => {
-  await client
-    .db()
-    .collection("gws")
-    .insertOne({ name: "test", gw: 2, bongo: 69 });
+// Not in use
+const getPointsPrMill = (element) => {
+  return element.total_points / element.now_cost;
+};
+// Not in use
+const getPointsPrGamePrMill = (element) => {
+  return element.points_per_game / element.now_cost;
 };
