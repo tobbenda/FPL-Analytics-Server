@@ -5,18 +5,22 @@ const request = require("request");
 const PORT = process.env.PORT || 4001;
 const elements = require("./routes/elements");
 const teams = require("./routes/teams");
+const mongoose = require("mongoose");
+const mongodb = reqire("mongodb").MongoClient;
 
 // const router = express.Router();
 // router.get("/", (req, res, next) => {
 //   console.log("yolo");
 // });
-
+const dbUri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.nmqfa.mongodb.net/fpl?retryWrites=true&w=majority`;
+mongoose.connect(dbUri, { useMongoClient: true });
 const app = express();
 app.use(cors());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
-app.use("/elements", elements); //elementRouter not implemented
+app.use("/elements", elements);
 app.use("/teams", teams);
+
 // app.post('/myteam', (req, res) => {
 //   const { email, password, playerID } = req.body;
 //   login(req, res, email, password, playerID);
