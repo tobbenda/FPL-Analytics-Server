@@ -143,7 +143,41 @@ const updateElements = async (client, gw) => {
     }
     await addGwBootstrapDataForEl(client, gw, elements[i]);
     await addGwSummaryDataForEl(client, gw, element_summaries[i]);
+    await addOwnStats(client, gw); //ppg + ppgpm
   }
+};
+
+const addOwnStats = async (client, gw) => {
+  await client
+    .db("fpl")
+    .collection("elements")
+    .find()
+    .forEach(async (el) => {
+      const points = el.bootstrap_total_points.find((el) => el.gw == gw).value;
+      const cost = el.bootstrap_now_cost.find((el) => el.gw == gw).value;
+      const pointsPrGame = el.bootstrap_points_per_game.find(
+        (el) => el.gw == gw
+      ).value;
+      console.log(el.web_name, points, cost, pointsPrGame, "gw: ", gw);
+      await client
+        .db()
+        .collection("elements")
+        .updateOne(
+          { id: el.id },
+          {
+            $push: {
+              points_pr_mill: {
+                gw: gw,
+                value: (points * 10) / cost || 0,
+              },
+              points_pr_game_pr_mill: {
+                gw: gw,
+                value: (pointsPrGame * 10) / cost || 0,
+              },
+            },
+          }
+        );
+    });
 };
 
 const getNewDataAndUpdate = async (latestBootstrapGw, client) => {
