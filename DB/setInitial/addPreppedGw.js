@@ -4,16 +4,109 @@ require("dotenv").config();
 const { useDB } = require("./connect");
 const { bootstrapElementKeysToKeep } = require("./helpers");
 
-const chooseKeys = (objects, keysToKeep) => {
-  const trimmedObjects = objects.map((el) => {
-    const newElement = {};
-    keysToKeep.forEach((key) => {
-      newElement[key] = el[key];
-    });
-    return newElement;
-  });
-  return trimmedObjects;
+// const chooseKeys = (objects, keysToKeep) => {
+//   const trimmedObjects = objects.map((el) => {
+//     const newElement = {};
+//     keysToKeep.forEach((key) => {
+//       newElement[key] = el[key];
+//     });
+//     return newElement;
+//   });
+//   return trimmedObjects;
+// };
+
+const createElementsCollection = async (client, gw) => {
+  const { gwBootstrapElements } = await client
+    .db()
+    .collection("gwsRaw")
+    .findOne({ gw: gw });
+  const elements = gwBootstrapElements;
+  const ids = elements.map((el) => el.id);
+  for (let i = 0; i < elements.length; i++) {
+    // const el = await client
+    //   .db()
+    //   .collection("elements")
+    //   .findOne({ id: elements[i].id });
+    // if (!el) {
+    await createEl(client, elements[i]);
+    // }
+  }
 };
+
+// useDB(createElementsCollection);
+
+const createEl = async (client, elementData) => {
+  await client.db().collection("elements").insertOne({
+    code: elementData.code,
+    elements_type: elementData.element_type,
+    first_name: elementData.first_name,
+    id: elementData.id,
+    second_name: elementData.second_name,
+    team: elementData.team,
+    team_code: elementData.team_code,
+    web_name: elementData.web_name,
+  });
+};
+const queryDynamic = async (client) => {
+  const query = { id: 1 };
+  const doThis = { $push: { testArr: { gw: 1, value: "test" } } };
+  await client.db().collection("elements").updateOne(query, doThis);
+};
+
+const getUpdateQ = (elementData, keys, gw, source) => {
+  const q = {};
+  for (let i = 0; i < keys.length; i++) {
+    q[source + keys[i]] = { gw: gw, value: elementData[keys[i]] };
+  }
+  return q;
+};
+
+const addGwBootstrapDataForEl = async (client, gw, elementData) => {
+  const keys = Object.keys(elementData);
+  const updateQ = getUpdateQ(elementData, keys, gw, "bootstrap_");
+  await client
+    .db()
+    .collection("elements")
+    .updateOne({ id: elementData.id }, { $push: updateQ });
+};
+
+const addGwSummaryDataForEl = async (client, gw, element_summary) => {
+  const keys = element_summary ? Object.keys(element_summary) : null;
+  if (!keys) {
+    return;
+  }
+  const updateQ = getUpdateQ(element_summary, keys, gw, "");
+  await client
+    .db()
+    .collection("elements")
+    .updateOne({ id: element_summary.element }, { $push: updateQ });
+};
+
+const populateElementsData = async (client, gw = 1) => {
+  const { gwBootstrapElements } = await client
+    .db()
+    .collection("gwsRaw")
+    .findOne({ gw: gw });
+  const elements = gwBootstrapElements;
+  const { element_summaries } = await client
+    .db()
+    .collection("gwsRaw")
+    .findOne({ gw: gw });
+
+  for (let i = 0; i < elements.length; i++) {
+    const el = await client
+      .db()
+      .collection("elements")
+      .findOne({ id: elements[i].id });
+    if (!el) {
+      await createEl(client, elements[i]);
+    }
+    await addGwBootstrapDataForEl(client, gw, elements[i]);
+    await addGwSummaryDataForEl(client, gw, element_summaries[i]);
+  }
+};
+
+// useDB(populateElementsData);
 
 const createGwPlayers = (gwData) => {
   const bootstrapElementsCleaned = chooseKeys(
@@ -62,10 +155,13 @@ const getLatestDbGw = async (client) => {
 };
 
 const initDB = async (client) => {
-  const gw = await getLatestDbGw(client);
+  // const gw = await getLatestDbGw(client);
+  const gw = 2;
   for (let i = 1; i <= gw; i++) {
     // await initWithCleanedBootstrapElements(client, i);
-    await addFieldsBasedOnInternalCalc(client, i);
+    // await addFieldsBasedOnInternalCalc(client, i);
+    i == 1 ? await createElementsCollection(client, i) : null;
+    await populateElementsData(client, i);
   }
 };
 
@@ -75,7 +171,7 @@ useDB(initDB);
 const addFieldsBasedOnInternalCalc = async (client, gw) => {
   await client
     .db()
-    .collection("gwsTest")
+    .collection("gws")
     .updateOne({ gw: gw }, [
       {
         $set: {
