@@ -31,10 +31,6 @@ const updateDB = async () => {
           { $push: { updateChecks: { time: time } } }
         );
     }
-
-    // Get all elements, check if some doesnt exist in elements, otherwise add them
-    // Update the gws data
-    // Update the elements data
   } catch (e) {
     console.error(e);
   } finally {
@@ -43,20 +39,4 @@ const updateDB = async () => {
 };
 updateDB();
 
-const testStuff = async (cb) => {
-  const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.nmqfa.mongodb.net/fpl?retryWrites=true&w=majority`;
-  const client = new MongoClient(uri, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  });
-  try {
-    await client.connect();
-    await cb(client);
-  } catch (e) {
-    console.error(e);
-  } finally {
-    await client.close();
-  }
-};
-// updateDB().catch(console.error);
 module.exports.updateDB = updateDB;

@@ -4,17 +4,6 @@ require("dotenv").config();
 const { useDB } = require("./connect");
 const { bootstrapElementKeysToKeep } = require("./helpers");
 
-// const chooseKeys = (objects, keysToKeep) => {
-//   const trimmedObjects = objects.map((el) => {
-//     const newElement = {};
-//     keysToKeep.forEach((key) => {
-//       newElement[key] = el[key];
-//     });
-//     return newElement;
-//   });
-//   return trimmedObjects;
-// };
-
 const createElementsCollection = async (client, gw) => {
   const { gwBootstrapElements } = await client
     .db()
@@ -23,17 +12,9 @@ const createElementsCollection = async (client, gw) => {
   const elements = gwBootstrapElements;
   const ids = elements.map((el) => el.id);
   for (let i = 0; i < elements.length; i++) {
-    // const el = await client
-    //   .db()
-    //   .collection("elements")
-    //   .findOne({ id: elements[i].id });
-    // if (!el) {
     await createEl(client, elements[i]);
-    // }
   }
 };
-
-// useDB(createElementsCollection);
 
 const createEl = async (client, elementData) => {
   await client.db().collection("elements").insertOne({
@@ -46,11 +27,6 @@ const createEl = async (client, elementData) => {
     team_code: elementData.team_code,
     web_name: elementData.web_name,
   });
-};
-const queryDynamic = async (client) => {
-  const query = { id: 1 };
-  const doThis = { $push: { testArr: { gw: 1, value: "test" } } };
-  await client.db().collection("elements").updateOne(query, doThis);
 };
 
 const getUpdateQ = (elementData, keys, gw, source) => {
@@ -106,8 +82,6 @@ const populateElementsData = async (client, gw = 1) => {
   }
 };
 
-// useDB(populateElementsData);
-
 const createGwPlayers = (gwData) => {
   const bootstrapElementsCleaned = chooseKeys(
     gwData.gwBootstrapElements,
@@ -159,79 +133,124 @@ const initDB = async (client) => {
   for (let i = 1; i <= gw; i++) {
     // await initWithCleanedBootstrapElements(client, i);
     // await addFieldsBasedOnInternalCalc(client, i);
-    i == 1 ? await createElementsCollection(client, i) : null;
-    await populateElementsData(client, i);
+    // i == 1 ? await createElementsCollection(client, i) : null;
+    // await populateElementsData(client, i);
+    await addFieldsBasedOnInternalCalc(client, i);
   }
 };
 
-// useDB();
 // useDB(initDB);
 
-const addFieldsBasedOnInternalCalc = async (client, gw) => {
+const deleteSomeFields = async (client, gw) => {
   await client
     .db()
-    .collection("gws")
-    .updateOne({ gw: gw }, [
-      {
-        $set: {
-          elements: {
-            $map: {
-              input: "$elements",
-              in: {
-                $mergeObjects: [
-                  "$$this",
-                  {
-                    points_pr_mill: {
-                      $divide: ["$$this.total_points", "$$this.now_cost"],
-                    },
-                    points_pr_game_pr_mill: {
-                      $divide: ["$$this.points_per_game", "$$this.now_cost"],
-                    },
-                  },
-                ],
+    .collection("elements")
+    .updateMany(
+      {},
+      { $unset: { points_pr_game_pr_mill: 1, points_pr_mill: 1 } },
+      { multi: true }
+    );
+};
+
+// Could be improved. throws shitloads of errors and takes forever, but seems to do the job.
+const addFieldsBasedOnInternalCalc = async (client, gw) => {
+  await client
+    .db("fpl")
+    .collection("elements")
+    .find()
+    .forEach(async (el) => {
+      const points = el.bootstrap_total_points.find((el) => el.gw == gw).value;
+      const cost = el.bootstrap_now_cost.find((el) => el.gw == gw).value;
+      const pointsPrGame = el.bootstrap_points_per_game.find(
+        (el) => el.gw == gw
+      ).value;
+      console.log(el.web_name, points, cost, pointsPrGame, "gw: ", gw);
+      await client
+        .db()
+        .collection("elements")
+        .updateOne(
+          { id: el.id },
+          {
+            $push: {
+              points_pr_mill: {
+                gw: gw,
+                value: (points * 10) / cost || 0,
+              },
+              points_pr_game_pr_mill: {
+                gw: gw,
+                value: (pointsPrGame * 10) / cost || 0,
               },
             },
-          },
-        },
-      },
-    ]);
+          }
+        );
+    });
 };
 
-// Not in use
-const addLastMatchStats = async (client, gw) => {
-  gw = 5;
-  if (gw == 1) {
-    // prevent adding
-  }
-  const { elements } = await client
-    .db()
-    .collection("gwsRaw")
-    .findOne({ gw: gw - 1 });
-  for (let i = 0; i < elements.length; i++) {
-    await client
-      .db()
-      .collection("gwsTest")
-      .updateOne(
-        { gw: gw, elements: { $elemMatch: { id: elements[i].id } } },
-        { $set: getNewStatsObj(elements[i]) }
-      );
-  }
-};
+// const addFieldsBasedOnInternalCalc = async (client, gw) => {
+//   await client
+//     .db()
+//     .collection("gws")
+//     .updateOne({ gw: gw }, [
+//       {
+//         $set: {
+//           elements: {
+//             $map: {
+//               input: "$elements",
+//               in: {
+//                 $mergeObjects: [
+//                   "$$this",
+//                   {
+//                     points_pr_mill: {
+//                       $divide: ["$$this.total_points", "$$this.now_cost"],
+//                     },
+//                     points_pr_game_pr_mill: {
+//                       $divide: ["$$this.points_per_game", "$$this.now_cost"],
+//                     },
+//                   },
+//                 ],
+//               },
+//             },
+//           },
+//         },
+//       },
+//     ]);
+// };
 
 // Not in use
-const getNewStatsObj = (element) => {
-  const updateObject = {
-    "elements.$.points_pr_mill": getPointsPrMill(element),
-    "elements.$.points_pr_game_pr_mill": getPointsPrGamePrMill(element),
-    "elements.$.points_last_game": "not implemented",
-  };
-  return updateObject;
-};
+// const addLastMatchStats = async (client, gw) => {
+//   gw = 5;
+//   if (gw == 1) {
+//     // prevent adding
+//   }
+//   const { elements } = await client
+//     .db()
+//     .collection("gwsRaw")
+//     .findOne({ gw: gw - 1 });
+//   for (let i = 0; i < elements.length; i++) {
+//     await client
+//       .db()
+//       .collection("gwsTest")
+//       .updateOne(
+//         { gw: gw, elements: { $elemMatch: { id: elements[i].id } } },
+//         { $set: getNewStatsObj(elements[i]) }
+//       );
+//   }
+// };
+
 // Not in use
-const getPointsPrMill = (element) => {
-  return element.total_points / element.now_cost;
-};
+// const getNewStatsObj = (element) => {
+//   const updateObject = {
+//     "elements.$.points_pr_mill": getPointsPrMill(element),
+//     "elements.$.points_pr_game_pr_mill": getPointsPrGamePrMill(element),
+//     "elements.$.points_last_game": "not implemented",
+//   };
+//   return updateObject;
+// };
 // Not in use
-const getPointsPrGamePrMill = (element) => {
-  return element.points_per_game / element.now_cost;
-};
+// const getPointsPrMill = (element) => {
+//   return element.total_points / element.now_cost;
+// };
+// Not in use
+// const getPointsPrGamePrMill = (element) => {
+//   return element.points_per_game / element.now_cost;
+// };
