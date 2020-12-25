@@ -31,6 +31,9 @@ const updateDB = async () => {
           { $push: { updateChecks: { time: time } } }
         );
     }
+    // Get all elements, check if some doesnt exist in elements, otherwise add them
+    // Update the gws data
+    // Update the elements data
   } catch (e) {
     console.error(e);
   } finally {
