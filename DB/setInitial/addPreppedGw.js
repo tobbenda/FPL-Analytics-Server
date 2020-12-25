@@ -155,8 +155,7 @@ const getLatestDbGw = async (client) => {
 };
 
 const initDB = async (client) => {
-  // const gw = await getLatestDbGw(client);
-  const gw = 2;
+  const gw = await getLatestDbGw(client);
   for (let i = 1; i <= gw; i++) {
     // await initWithCleanedBootstrapElements(client, i);
     // await addFieldsBasedOnInternalCalc(client, i);
@@ -166,7 +165,7 @@ const initDB = async (client) => {
 };
 
 // useDB();
-useDB(initDB);
+// useDB(initDB);
 
 const addFieldsBasedOnInternalCalc = async (client, gw) => {
   await client
