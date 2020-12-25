@@ -19,7 +19,7 @@ const updateDB = async () => {
     const latestBootstrapGw = await helpers.getLatestBootstrapGw();
     if (latestBootstrapGw > latestDbGw) {
       console.log("New Gameweek to update!");
-      await getNewDataAndUpdate(latestBootstrapGw, client);
+      await getNewDataAndUpdate(latestBootstrapGw, client, latestBootstrapGw);
     } else {
       console.log("Not a new gameweek finished yet");
       const time = getTimeStamp();
@@ -31,6 +31,7 @@ const updateDB = async () => {
           { $push: { updateChecks: { time: time } } }
         );
     }
+
     // Get all elements, check if some doesnt exist in elements, otherwise add them
     // Update the gws data
     // Update the elements data
