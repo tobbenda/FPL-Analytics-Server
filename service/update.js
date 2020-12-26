@@ -8,7 +8,7 @@ async function update() {
   await remote.getData();
   const pages = 2;
   const league = 314;
-  const gw = 14;
+  const gw = 15;
   await updateTopPlayerData(pages, league, gw);
   await preppers.prepPlayers();
 }
