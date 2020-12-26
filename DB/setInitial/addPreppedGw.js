@@ -127,6 +127,32 @@ const getLatestDbGw = async (client) => {
   const details = await client.db().collection("details").findOne();
   return details.latestGW;
 };
+const createElementLatest = (el, gw) => {
+  const obj = {};
+  for (const prop in el) {
+    if (Array.isArray(el[prop])) {
+      obj[prop] = el[prop].find((gwEl) => gwEl.gw === gw).value;
+    } else {
+      obj[prop] = el[prop];
+    }
+  }
+  return obj;
+};
+
+const addLatestElements = async (client) => {
+  const lastGw = await getLatestDbGw(client);
+  await client
+    .db("fpl")
+    .collection("elements")
+    .find({})
+    .forEach(async (el) => {
+      const element = createElementLatest(el, lastGw);
+      await client.db("fpl").collection("latestElements").insertOne(element);
+    });
+};
+// useDB(addLatestElements);
+
+const convertStringsToDouble = (client) => {};
 
 const initDB = async (client) => {
   const gw = await getLatestDbGw(client);
@@ -135,7 +161,8 @@ const initDB = async (client) => {
     // await addFieldsBasedOnInternalCalc(client, i);
     // i == 1 ? await createElementsCollection(client, i) : null;
     // await populateElementsData(client, i);
-    await addFieldsBasedOnInternalCalc(client, i);
+    // await addFieldsBasedOnInternalCalc(client, i);
+    // await addLatestELements(client);
   }
 };
 

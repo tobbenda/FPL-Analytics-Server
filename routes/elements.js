@@ -12,10 +12,11 @@ router.get("/", async (req, res, next) => {
   const gwData = await db
     .getDb()
     .db("fpl")
-    .collection("gwsTest")
-    .findOne({ gw: latestGW });
-  // console.log("yeehaw", one.gw);
-  res.end(JSON.stringify({ response: true }));
+    .collection("elements")
+    .findOne({ id: 254 }, { web_name: 1 });
+  console.log(gwData);
+  res.end();
+  // res.end(JSON.stringify({ response: true }));
 });
 
 module.exports = router;
