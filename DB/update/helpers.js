@@ -1,4 +1,5 @@
 const request = require("request");
+// const { setLatestElements } = require("../setInitial/latestElements");
 
 const getBootStrapData = async () => {
   const url = "http://fantasy.premierleague.com/api/bootstrap-static/";
@@ -180,6 +181,14 @@ const addOwnStats = async (client, gw) => {
     });
 };
 
+const convertAllPropsOfObjectFromStringToFloat = (obj) => {
+  for (let key in obj) {
+    if (typeof obj[key] == "string" && !isNaN(obj[key]) && obj[key] !== "") {
+      obj[key] = parseFloat(obj[key]);
+    }
+  }
+};
+
 const getNewDataAndUpdate = async (latestBootstrapGw, client) => {
   const gwLiveElements = await getGwLiveElements(latestBootstrapGw);
   const gwElementSummaries = await getGwElementSummaries(
@@ -190,6 +199,12 @@ const getNewDataAndUpdate = async (latestBootstrapGw, client) => {
     bootstrapElements,
     bootstrapTeams,
   } = await helpers.getBootstrapElementsAndTeams();
+  bootstrapElements.forEach(convertAllPropsOfObjectFromStringToFloat);
+  gwElementSummaries.forEach(convertAllPropsOfObjectFromStringToFloat);
+  gwLiveElements.forEach((el) =>
+    convertAllPropsOfObjectFromStringToFloat(el.stats)
+  );
+
   await client.db("fpl").collection("gwsRaw").insertOne({
     gw: latestBootstrapGw,
     event_live_elements: gwLiveElements,
@@ -213,6 +228,42 @@ const getNewDataAndUpdate = async (latestBootstrapGw, client) => {
     latestBootstrapGw
   );
   await updateElements(client, latestBootstrapGw);
+  await setLatestElements(client);
+};
+const addLatestElements = async (client) => {
+  const arrOfLatestElements = [];
+  const latestGw = await getLatestDbGw(client);
+  const elements = await client
+    .db("fpl")
+    .collection("elements")
+    .find({})
+    .toArray();
+  elements.forEach((el) => {
+    const newObj = {};
+    for (const prop in el) {
+      if (Array.isArray(el[prop])) {
+        const val = el[prop][el[prop].length - 1].value;
+        newObj[prop] =
+          !isNaN(val) && typeof val == "string" && val !== ""
+            ? parseFloat(val)
+            : val;
+      } else {
+        newObj[prop] = el[prop];
+      }
+    }
+    arrOfLatestElements.push(newObj);
+  });
+  await setLatestElements(client);
+};
+// useDB(addLatestElements);
+
+const deleteLatestElements = async (client) => {
+  await client.db("fpl").collection("latestElements").drop();
+};
+
+const setLatestElements = async (client) => {
+  await deleteLatestElements(client);
+  await addLatestElements(client);
 };
 
 const getLatestDbGw = async (client) => {
