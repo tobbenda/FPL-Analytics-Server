@@ -1,4 +1,5 @@
 const request = require("request");
+const { setLatestElements } = require("../setInitial/latestElements");
 
 const getBootStrapData = async () => {
   const url = "http://fantasy.premierleague.com/api/bootstrap-static/";
@@ -180,6 +181,14 @@ const addOwnStats = async (client, gw) => {
     });
 };
 
+const convertAllPropsOfObjectFromStringToFloat = (obj) => {
+  for (let key in obj) {
+    if (typeof obj[key] == "string" && !isNaN(obj[key]) && obj[key] !== "") {
+      obj[key] = parseFloat(obj[key]);
+    }
+  }
+};
+
 const getNewDataAndUpdate = async (latestBootstrapGw, client) => {
   const gwLiveElements = await getGwLiveElements(latestBootstrapGw);
   const gwElementSummaries = await getGwElementSummaries(
@@ -190,6 +199,12 @@ const getNewDataAndUpdate = async (latestBootstrapGw, client) => {
     bootstrapElements,
     bootstrapTeams,
   } = await helpers.getBootstrapElementsAndTeams();
+  bootstrapElements.forEach(convertAllPropsOfObjectFromStringToFloat);
+  gwElementSummaries.forEach(convertAllPropsOfObjectFromStringToFloat);
+  gwLiveElements.forEach((el) =>
+    convertAllPropsOfObjectFromStringToFloat(el.stats)
+  );
+
   await client.db("fpl").collection("gwsRaw").insertOne({
     gw: latestBootstrapGw,
     event_live_elements: gwLiveElements,
@@ -213,6 +228,7 @@ const getNewDataAndUpdate = async (latestBootstrapGw, client) => {
     latestBootstrapGw
   );
   await updateElements(client, latestBootstrapGw);
+  await setLatestElements(client);
 };
 
 const getLatestDbGw = async (client) => {
