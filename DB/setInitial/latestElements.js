@@ -30,7 +30,20 @@ const addLatestElements = async (client) => {
     .collection("latestElements")
     .insertMany(arrOfLatestElements);
 };
-useDB(addLatestElements);
+// useDB(addLatestElements);
+
+const deleteLatestElements = async (client) => {
+  await client.db("fpl").collection("latestElements").drop();
+};
+
+const setLatestElements = async (client) => {
+  await deleteLatestElements(client);
+  await addLatestElements(client);
+};
+
+module.exports = {
+  setLatestElements,
+};
 
 // const createElementLatest = (el, gw) => {
 //   const obj = {};
@@ -61,16 +74,3 @@ useDB(addLatestElements);
 // };
 
 // useDB(addLatestElements);
-
-const deleteLatestElements = async (client) => {
-  await client.db("fpl").collection("latestElements").drop();
-};
-
-const setLatestElements = async (client) => {
-  await deleteLatestElements(client);
-  await addLatestElements(client);
-};
-
-module.exports = {
-  setLatestElements,
-};

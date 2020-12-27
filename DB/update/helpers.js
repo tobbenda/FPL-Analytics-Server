@@ -230,6 +230,41 @@ const getNewDataAndUpdate = async (latestBootstrapGw, client) => {
   await updateElements(client, latestBootstrapGw);
   await setLatestElements(client);
 };
+const addLatestElements = async (client) => {
+  const arrOfLatestElements = [];
+  const latestGw = await getLatestDbGw(client);
+  const elements = await client
+    .db("fpl")
+    .collection("elements")
+    .find({})
+    .toArray();
+  elements.forEach((el) => {
+    const newObj = {};
+    for (const prop in el) {
+      if (Array.isArray(el[prop])) {
+        const val = el[prop][el[prop].length - 1].value;
+        newObj[prop] =
+          !isNaN(val) && typeof val == "string" && val !== ""
+            ? parseFloat(val)
+            : val;
+      } else {
+        newObj[prop] = el[prop];
+      }
+    }
+    arrOfLatestElements.push(newObj);
+  });
+  await setLatestElements(client);
+};
+// useDB(addLatestElements);
+
+const deleteLatestElements = async (client) => {
+  await client.db("fpl").collection("latestElements").drop();
+};
+
+const setLatestElements = async (client) => {
+  await deleteLatestElements(client);
+  await addLatestElements(client);
+};
 
 const getLatestDbGw = async (client) => {
   const details = await client
