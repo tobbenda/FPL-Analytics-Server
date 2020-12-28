@@ -1,4 +1,3 @@
-const { buildExecutionContext } = require("graphql/execution/execute");
 const { MongoClient } = require("mongodb");
 require("dotenv").config();
 const { useDB } = require("./connect");
@@ -120,3 +119,33 @@ const addFieldsBasedOnInternalCalc = async (client, gw) => {
         );
     });
 };
+
+const createElements = async (client) => {
+  const gw = await getLatestDbGw(client);
+  await createElementsCollection(client, 1);
+  for (let i = 1; i <= gw; i++) {
+    await populateElementsData(client, i);
+    await addFieldsBasedOnInternalCalc(client, i);
+  }
+  await addLatestElements(client);
+};
+useDB(createElements);
+// const deleteAllDataForCertainGw = async (client, gw = 15) => {
+//   const elementsData = await client
+//     .db("fpl")
+//     .collection("elements")
+//     .find({ bootstrap_assists: { $elemMatch: { gw: gw } } })
+//     .project({ _id: 0, id: 1 })
+//     .toArray();
+//   elementsData.forEach((el) => {
+//     for (const prop in el) {
+//       if (Array.isArray(el[prop])) {
+//         if (el[prop].find((x) => x.gw === 15)) {
+//           console.log("yolo", el.id);
+//         }
+//       }
+//     }
+//   });
+//   console.log(elementsData);
+// };
+// useDB(deleteAllDataForCertainGw);

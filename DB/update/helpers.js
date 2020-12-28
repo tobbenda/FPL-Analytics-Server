@@ -144,8 +144,8 @@ const updateElements = async (client, gw) => {
     }
     await addGwBootstrapDataForEl(client, gw, elements[i]);
     await addGwSummaryDataForEl(client, gw, element_summaries[i]);
-    await addOwnStats(client, gw); //ppg + ppgpm
   }
+  await addOwnStats(client, gw); //ppg + ppgpm
 };
 
 const addOwnStats = async (client, gw) => {
