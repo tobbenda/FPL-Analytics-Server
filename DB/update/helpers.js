@@ -144,21 +144,23 @@ const updateElements = async (client, gw) => {
     }
     await addGwBootstrapDataForEl(client, gw, elements[i]);
     await addGwSummaryDataForEl(client, gw, element_summaries[i]);
-    await addOwnStats(client, gw); //ppg + ppgpm
   }
+  await addOwnStats(client, gw); //ppg + ppgpm
 };
 
+//NEEDS TO BE REWRITTEN
 const addOwnStats = async (client, gw) => {
   await client
     .db("fpl")
     .collection("elements")
     .find()
     .forEach(async (el) => {
-      const points = el.bootstrap_total_points.find((el) => el.gw == gw).value;
-      const cost = el.bootstrap_now_cost.find((el) => el.gw == gw).value;
-      const pointsPrGame = el.bootstrap_points_per_game.find(
-        (el) => el.gw == gw
-      ).value;
+      const points =
+        el.bootstrap_total_points.find((el) => el.gw == gw).value || null;
+      const cost =
+        el.bootstrap_now_cost.find((el) => el.gw == gw).value || null;
+      const pointsPrGame =
+        el.bootstrap_points_per_game.find((el) => el.gw == gw).value || null;
       console.log(el.web_name, points, cost, pointsPrGame, "gw: ", gw);
       await client
         .db()
@@ -198,7 +200,7 @@ const getNewDataAndUpdate = async (latestBootstrapGw, client) => {
   const {
     bootstrapElements,
     bootstrapTeams,
-  } = await helpers.getBootstrapElementsAndTeams();
+  } = await getBootstrapElementsAndTeams();
   bootstrapElements.forEach(convertAllPropsOfObjectFromStringToFloat);
   gwElementSummaries.forEach(convertAllPropsOfObjectFromStringToFloat);
   gwLiveElements.forEach((el) =>

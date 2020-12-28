@@ -19,7 +19,7 @@ const updateDB = async () => {
     const latestBootstrapGw = await helpers.getLatestBootstrapGw();
     if (latestBootstrapGw > latestDbGw) {
       console.log("New Gameweek to update!");
-      await getNewDataAndUpdate(latestBootstrapGw, client, latestBootstrapGw);
+      await getNewDataAndUpdate(latestBootstrapGw, client);
     } else {
       console.log("Not a new gameweek finished yet");
       const time = getTimeStamp();
