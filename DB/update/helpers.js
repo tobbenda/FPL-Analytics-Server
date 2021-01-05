@@ -1,5 +1,5 @@
 const request = require("request");
-const { setLatestElements } = require("../setInitial/latestElements");
+// const { setLatestElements } = require("../setInitial/latestElements");
 
 const getBootStrapData = async () => {
   const url = "http://fantasy.premierleague.com/api/bootstrap-static/";
