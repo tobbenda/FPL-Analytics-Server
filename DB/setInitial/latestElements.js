@@ -37,9 +37,11 @@ const deleteLatestElements = async (client) => {
 };
 
 const setLatestElements = async (client) => {
-  await deleteLatestElements(client);
+  // await deleteLatestElements(client);
   await addLatestElements(client);
 };
+
+useDB(setLatestElements);
 
 module.exports = {
   setLatestElements,

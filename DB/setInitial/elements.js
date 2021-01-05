@@ -127,9 +127,9 @@ const createElements = async (client) => {
     await populateElementsData(client, i);
     await addFieldsBasedOnInternalCalc(client, i);
   }
-  await addLatestElements(client);
+  // await addLatestElements(client);
 };
-useDB(createElements);
+// useDB(createElements);
 // const deleteAllDataForCertainGw = async (client, gw = 15) => {
 //   const elementsData = await client
 //     .db("fpl")
@@ -149,3 +149,55 @@ useDB(createElements);
 //   console.log(elementsData);
 // };
 // useDB(deleteAllDataForCertainGw);
+
+const createElements2 = async (client) => {
+  const staticValues = [
+    "code",
+    "elements_type",
+    "first_name",
+    "id",
+    "second_name",
+    "team",
+    "team_code",
+    "web_name",
+  ];
+  const data = await client.db("fpl").collection("gwsRaw").find({}).toArray();
+  const elements = [];
+  data[0].gwBootstrapElements.forEach((el) => {
+    const newObj = {};
+    for (const prop in el) {
+      if (staticValues.includes(prop)) {
+        newObj[prop] = el[prop];
+      } else {
+        newObj[prop] = [];
+      }
+    }
+    elements.push(newObj);
+  });
+  data.forEach((gw) => {
+    gw.gwBootstrapElements.forEach((el) => {
+      // if el not in elements, createel
+      for (const prop in el) {
+        if (!(prop in staticValues)) {
+          try {
+            elements
+              .find((element) => element.id === el.id)
+              [prop].push({ gw: gw.gw, value: el[prop] });
+          } catch (e) {
+            console.log(e);
+          }
+        }
+      }
+    });
+  });
+  client.db("fpl").collection("newElements").insertMany(elements);
+  // console.log(elements);
+  // data.forEach((gw) => {
+  //   gw.gwBootstrapElements.forEach((el) => {
+  //     for (const prop in el) {
+  //     }
+  //   });
+  // });
+};
+
+useDB(createElements2);
