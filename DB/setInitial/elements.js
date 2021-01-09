@@ -33,9 +33,15 @@ const createEmptyOwnStatArrays = (elements) => {
   });
 };
 
-const addToOwnStat = (element, el) => {
-  element.points_pr_mill.push((el.total_points * 10) / el.now_cost);
-  element.points_pr_game_pr_mill.push((el.points_per_game * 10) / el.now_cost);
+const addToOwnStat = (element, el, gw) => {
+  element.points_pr_mill.push({
+    gw: gw,
+    value: (el.total_points * 10) / el.now_cost,
+  });
+  element.points_pr_game_pr_mill.push({
+    gw: gw,
+    value: (el.points_per_game * 10) / el.now_cost,
+  });
 };
 
 const addGwBootstrapDataForElement = (
@@ -84,7 +90,7 @@ const initElements = async (client) => {
         gw.gw
       );
 
-      addToOwnStat(elements[playerIndex], el);
+      addToOwnStat(elements[playerIndex], el, gw.gw);
     });
     gw.element_summaries.forEach((el) => {
       if (el) {
@@ -100,7 +106,11 @@ const initElements = async (client) => {
       }
     });
   });
-  await client.db("fpl").collection("newElements").insertMany(elements);
+  await client.db("fpl").collection("elements").insertMany(elements);
 };
 
 useDB(initElements);
+
+module.exports = {
+  initElements,
+};
